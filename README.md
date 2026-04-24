@@ -27,7 +27,7 @@ O projeto foi construído utilizando tecnologias modernas e leves para garantir 
 
 ## 💻 Como Usar
 
-1. Acesse o projeto em: [soarespaullo.github.io/markup](https://soarespaullo.github.io/markup) (ou seu link customizado).
+1. Acesse o projeto em: [soarespaullo.github.io/MarkUp](https://soarespaullo.github.io/MarkUp) (ou seu link customizado).
 2. **Cole** o conteúdo HTML desejado usando `Ctrl + V`.
 3. Ou **Clique** na zona de colagem para selecionar um arquivo do seu computador.
 4. Alterne entre as abas **Editor** e **Visualizar** para conferir o resultado.
