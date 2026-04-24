@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkUp | HTML to Markdown Converter</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
+        }
+
+        .hero-section {
+            padding: 2.5rem 0;
+            background: linear-gradient(135deg, #1e1e1e 0%, #0d1117 100%);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 2rem;
+        }
+
+        [data-bs-theme="light"] .hero-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            color: #333;
+        }
+
+        #paste-zone {
+            border: 2px dashed #6c757d;
+            border-radius: 12px;
+            padding: 50px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(108, 117, 125, 0.05);
+            outline: none;
+        }
+
+        #paste-zone:hover, #paste-zone:focus {
+            border-color: #0d6efd;
+            background: rgba(13, 110, 253, 0.05);
+        }
+
+        #output, #preview-area {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            min-height: 450px;
+            resize: vertical;
+        }
+
+        #preview-area {
+            font-family: 'Inter', sans-serif;
+            background: var(--bs-tertiary-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: var(--bs-border-radius);
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .hidden { display: none; }
+        
+        footer {
+            margin-top: auto;
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(108, 117, 125, 0.2);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar bg-body-tertiary shadow-sm">
+        <div class="container">
+            <span class="navbar-brand fw-bold mb-0 h1">⚡ MarkUp</span>
+            <button class="btn btn-outline-secondary btn-sm" id="btnTheme" onclick="toggleTheme()">
+                <i class="bi bi-moon-stars-fill"></i> Alterar Tema
+            </button>
+        </div>
+    </nav>
+
+    <header class="hero-section text-center">
+        <div class="container">
+            <h1 class="fw-bold">MarkUp</h1>
+            <p class="opacity-75">Converta textos e HTML para Markdown instantaneamente.</p>
+        </div>
+    </header>
+
+    <main class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                
+                <input type="file" id="fileInput" class="hidden" accept=".html,.txt">
+                
+                <div id="paste-zone" contenteditable="true" class="mb-4 shadow-sm" onclick="document.getElementById('fileInput').click()">
+                    <div class="py-3">
+                        <i class="bi bi-clipboard-plus fs-1 d-block mb-2 text-primary"></i>
+                        <span class="text-secondary">Cole (Ctrl+V) ou <strong>clique aqui</strong> para subir um arquivo HTML</span>
+                    </div>
+                </div>
+
+                <div id="result-container" class="hidden">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-3">
+                        
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-primary active" id="btnEdit" onclick="showTab('edit')">Editor</button>
+                            <button type="button" class="btn btn-sm btn-primary" id="btnPreview" onclick="showTab('preview')">Visualizar</button>
+                            <span id="stats" class="ms-2 small text-secondary"></span>
+                        </div>
+                        
+                        <div class="d-flex gap-2"> 
+                            <button class="btn btn-sm btn-danger" onclick="clearAll()" title="Limpar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="downloadMarkdown()" title="Download .md">
+                                <i class="bi bi-download"></i>
+                            </button>
+                            <button class="btn btn-sm btn-info text-white" onclick="shareContent()" title="Compartilhar">
+                                <i class="bi bi-share"></i>
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="copyBtn" onclick="copyMarkdown()">
+                                <i class="bi bi-copy"></i> Copiar Código
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="editor-tab">
+                        <textarea id="output" class="form-control shadow-sm" readonly></textarea>
+                    </div>
+                    <div id="preview-tab" class="hidden">
+                        <div id="preview-area"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-body-tertiary">
+        <div class="container text-center">
+            <p class="mb-0 text-secondary small">
+                &copy; 2026 Desenvolvido por 
+                <a href="https://soarespaullo.github.io" class="text-decoration-none fw-bold" target="_blank">
+                    Paulo Soares
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        const turndownService = new TurndownService({
+            headingStyle: 'atx',
+            codeBlockStyle: 'fenced',
+            hr: '---',
+            bulletListMarker: '-'
+        });
+
+        const pasteZone = document.getElementById('paste-zone');
+        const output = document.getElementById('output');
+        const resultContainer = document.getElementById('result-container');
+        const stats = document.getElementById('stats');
+        const fileInput = document.getElementById('fileInput');
+
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files;
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => processContent(e.target.result);
+            reader.readAsText(file);
+        });
+
+        document.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const html = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
+            processContent(html);
+        });
+
+        function processContent(html) {
+            const markdown = turndownService.turndown(html);
+            output.value = markdown;
+            resultContainer.classList.remove('hidden');
+            updateStats(markdown);
+            renderPreview(markdown);
+            
+            pasteZone.blur(); 
+            pasteZone.innerHTML = '<div class="py-3 text-success fw-bold"><i class="bi bi-check-circle fs-1 d-block mb-2"></i>Convertido!</div>';
+            setTimeout(() => {
+                pasteZone.innerHTML = '<div class="py-3"><i class="bi bi-clipboard-plus fs-1 d-block mb-2 text-primary"></i><span class="text-secondary">Cole novamente ou clique para subir arquivo</span></div>';
+            }, 2000);
+        }
+
+        function updateStats(text) {
+            const words = text.trim() === "" ? 0 : text.trim().split(/\s+/).length;
+            stats.innerText = `${words} palavras | ${text.length} caracteres`;
+        }
+
+        function renderPreview(md) {
+            document.getElementById('preview-area').innerHTML = marked.parse(md);
+        }
+
+        function showTab(tab) {
+            if(tab === 'edit') {
+                document.getElementById('editor-tab').classList.remove('hidden');
+                document.getElementById('preview-tab').classList.add('hidden');
+                document.getElementById('btnEdit').classList.add('active');
+                document.getElementById('btnPreview').classList.remove('active');
+            } else {
+                document.getElementById('editor-tab').classList.add('hidden');
+                document.getElementById('preview-tab').classList.remove('hidden');
+                document.getElementById('btnEdit').classList.remove('active');
+                document.getElementById('btnPreview').classList.add('active');
+            }
+        }
+
+        async function copyMarkdown() {
+            try {
+                await navigator.clipboard.writeText(output.value);
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = '<i class="bi bi-check"></i> Copiado!';
+                setTimeout(() => btn.innerHTML = '<i class="bi bi-copy"></i> Copiar Código', 2000);
+            } catch (err) { console.error(err); }
+        }
+
+        function downloadMarkdown() {
+            const blob = new Blob([output.value], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `markup_doc_${new Date().getTime()}.md`;
+            a.click();
+        }
+
+        function shareContent() {
+            const text = encodeURIComponent(output.value.substring(0, 500) + "...");
+            window.open(`whatsapp://send?text=Confira este Markdown: ${text}`);
+        }
+
+        function clearAll() {
+            output.value = "";
+            resultContainer.classList.add('hidden');
+            showTab('edit');
+            pasteZone.innerHTML = '<div class="py-3"><i class="bi bi-clipboard-plus fs-1 d-block mb-2 text-primary"></i><span class="text-secondary">Pressione Ctrl + V ou clique para subir arquivo</span></div>';
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const newTheme = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#btnTheme i');
+            icon.className = theme === 'dark' ? 'bi bi-moon-stars-fill' : 'bi bi-sun-fill';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
